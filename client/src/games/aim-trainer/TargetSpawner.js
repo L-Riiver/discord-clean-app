@@ -15,6 +15,10 @@ export class TargetSpawner {
     this.config = { ...(diffConfig[difficulty] || diffConfig['easy']) };
   }
 
+  getAppearingSpeed() {
+    return (this.config.delay / 1000).toFixed(1) + 's';
+  }
+
   update(deltaTime) {
     this.spawnTimer += deltaTime;
     
@@ -43,8 +47,9 @@ export class TargetSpawner {
   attemptHit(mouseX, mouseY) {
     let hit = false;
     this.targets = this.targets.filter(target => {
-      const distance = Math.hypot(target.x - mouseX, target.y - mouseY);
-      if (distance <= target.radius) {
+      // Manhattan distance for exact diamond click detection
+      const manhattanDistance = Math.abs(target.x - mouseX) + Math.abs(target.y - mouseY);
+      if (manhattanDistance <= target.radius) {
          hit = true;
          return false; // Remove if hit
       }
@@ -62,11 +67,27 @@ export class TargetSpawner {
   draw(ctx) {
     this.targets.forEach(t => {
       if (t.radius <= 0) return;
-      ctx.beginPath();
-      ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2);
-      ctx.fillStyle = "#eb4d4b"; 
-      ctx.fill();
-      ctx.closePath();
+      
+      ctx.save();
+      ctx.translate(t.x, t.y);
+      ctx.rotate(Math.PI / 4); // Rotate 45 degrees
+      
+      const r = t.radius / Math.SQRT2; // Half-side of the square inscribed in target.radius
+
+      // Outer glow and border
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#fff';
+      ctx.shadowBlur = 15;
+      
+      ctx.strokeRect(-r, -r, r * 2, r * 2);
+      
+      // Inner border for extra detail
+      ctx.lineWidth = 1;
+      ctx.shadowBlur = 0;
+      ctx.strokeRect(-r * 0.6, -r * 0.6, r * 1.2, r * 1.2);
+      
+      ctx.restore();
     });
   }
 }

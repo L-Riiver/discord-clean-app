@@ -4,10 +4,9 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   envDir: '../',
   server: {
+    host: true, // Listen on all interfaces
+    strictPort: true, // Fail if port is occupied
     allowedHosts: true,
-    // allowedHosts: [
-    //   'garage-cite-cheapest-underwear.trycloudflare.com'
-    // ],
     proxy: {
       '/api': {
         target: 'http://localhost:3001',
@@ -17,6 +16,7 @@ export default defineConfig({
       },
     },
     hmr: {
+      protocol: 'wss', // Force secure websockets for tunnel
       clientPort: 443,
     },
   },

@@ -6,13 +6,20 @@ export class MenuScene {
     this.container = container;
     this.sceneManager = sceneManager;
 
-    // Load saved difficulties or defaults
     this.difficulties = {
       aim: localStorage.getItem('aimDifficulty') || 'medium',
       dodge: localStorage.getItem('dodgeDifficulty') || 'medium'
     };
 
+    this.selectedCursor = localStorage.getItem('selectedCursor') || 'cursor-default';
+    this.applyCursor(this.selectedCursor);
+
     this.handlePlayClick = this.handlePlayClick.bind(this);
+  }
+
+  applyCursor(cursorClass) {
+    document.body.classList.remove('cursor-default', 'cursor-custom-1', 'cursor-custom-2', 'cursor-custom-3');
+    document.body.classList.add(cursorClass);
   }
 
   init() {
@@ -23,49 +30,79 @@ export class MenuScene {
   render() {
     this.container.innerHTML = `
       <div class="menu-container">
-        <h1>MicroLoL Academy</h1>
-        <h2>Selecciona un juego:</h2>
+        <!-- Logo Section -->
+        <div class="logo-section">
+          <img src="../microlol-transparent.png" alt="Logo">
+          
+          <div class="cursor-select-container" style="margin-top: 20px; text-align: center;">
+            <label style="font-weight: bold; margin-right: 10px;">CURSOR:</label>
+            <select id="cursor-select" style="background: black; color: white; border: 2px solid white; padding: 5px 10px; font-weight: bold; font-family: inherit; cursor: pointer;">
+              <option value="cursor-default" ${this.selectedCursor === 'cursor-default' ? 'selected' : ''}>Default</option>
+              <option value="cursor-custom-1" ${this.selectedCursor === 'cursor-custom-1' ? 'selected' : ''}>Cruz</option>
+              <option value="cursor-custom-2" ${this.selectedCursor === 'cursor-custom-2' ? 'selected' : ''}>Mano</option>
+              <option value="cursor-custom-3" ${this.selectedCursor === 'cursor-custom-3' ? 'selected' : ''}>Cursor Lol</option>
+            </select>
+          </div>
+        </div>
         
-        <div class="games-container" id="games-container">
+        <!-- Games Section -->
+        <div class="games-container">
           <!-- Aim Faster -->
-          <div class="game-container" id="container-aim">
-            <div class="game-header" id="header-aim">
-              <h2 class="game-title">Aim Faster</h2>
-              <span class="difficulty-label">Dificultad: <strong id="label-aim">${this.getDifficultyLabel(this.difficulties.aim)}</strong></span>
+          <div class="game-card" id="card-aim" data-game="aim">
+            <div class="game-info">
+              <span class="icon">🗡️</span>
+              <h2>Aim Faster</h2>
             </div>
-            <div class="game-options collapsible" id="options-aim">
-                <button class="diff-btn ${this.difficulties.aim === 'easy' ? 'active' : ''}" data-game="aim" data-diff="easy" id="btn-aim-easy">Fácil</button>
-                <button class="diff-btn ${this.difficulties.aim === 'medium' ? 'active' : ''}" data-game="aim" data-diff="medium" id="btn-aim-medium">Medio</button>
-                <button class="diff-btn ${this.difficulties.aim === 'hard' ? 'active' : ''}" data-game="aim" data-diff="hard" id="btn-aim-hard">Difícil</button>
+            <div class="game-difficulty-trigger">
+              <span class="diff-label">Dificultad:</span>
+              <div class="diff-selected">
+                <span id="label-aim">${this.getDifficultyLabel(this.difficulties.aim)}</span>
+                <span class="diff-arrow">▲</span>
+              </div>
+              
+              <div class="difficulty-dropdown">
+                <div class="diff-opt ${this.difficulties.aim === 'easy' ? 'current' : ''}" data-diff="easy">Fácil</div>
+                <div class="diff-opt ${this.difficulties.aim === 'medium' ? 'current' : ''}" data-diff="medium">Medio</div>
+                <div class="diff-opt ${this.difficulties.aim === 'hard' ? 'current' : ''}" data-diff="hard">Difícil</div>
+              </div>
             </div>
           </div>
 
           <!-- Dodge Skills -->
-          <div class="game-container" id="container-dodge">
-            <div class="game-header" id="header-dodge">
-              <h2 class="game-title">Dodge Skills</h2>
-              <span class="difficulty-label">Dificultad: <strong id="label-dodge">${this.getDifficultyLabel(this.difficulties.dodge)}</strong></span>
+          <div class="game-card" id="card-dodge" data-game="dodge">
+            <div class="game-info">
+              <span class="icon">🛡️</span>
+              <h2>Dodge Skills</h2>
             </div>
-            <div class="game-options collapsible" id="options-dodge">
-                <button class="diff-btn ${this.difficulties.dodge === 'easy' ? 'active' : ''}" data-game="dodge" data-diff="easy" id="btn-dodge-easy">Fácil</button>
-                <button class="diff-btn ${this.difficulties.dodge === 'medium' ? 'active' : ''}" data-game="dodge" data-diff="medium" id="btn-dodge-medium">Medio</button>
-                <button class="diff-btn ${this.difficulties.dodge === 'hard' ? 'active' : ''}" data-game="dodge" data-diff="hard" id="btn-dodge-hard">Difícil</button>
+            <div class="game-difficulty-trigger">
+              <span class="diff-label">Dificultad:</span>
+              <div class="diff-selected">
+                <span id="label-dodge">${this.getDifficultyLabel(this.difficulties.dodge)}</span>
+                <span class="diff-arrow">▼</span>
+              </div>
+              
+              <div class="difficulty-dropdown">
+                <div class="diff-opt ${this.difficulties.dodge === 'easy' ? 'current' : ''}" data-diff="easy">Fácil</div>
+                <div class="diff-opt ${this.difficulties.dodge === 'medium' ? 'current' : ''}" data-diff="medium">Medio</div>
+                <div class="diff-opt ${this.difficulties.dodge === 'hard' ? 'current' : ''}" data-diff="hard">Difícil</div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="results-container">
-          <h2>Resultados</h2>
-          <div class="results">
-            <div class="result">
-              <h3>Aim Faster</h3>
-              <p class="score" id="score-aim">0</p><span class="difficulty" id="best-diff-aim">-</span>
-            </div>
-            <div class="result">
-              <h3>Dodge Skills</h3>
-              <p class="score" id="score-dodge">0</p><span class="difficulty" id="best-diff-dodge">-</span>
-            </div>
-          </div>
+        <!-- Results Section -->
+        <div class="results-section">
+          <h3 class="results-header">Resultados</h3>
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th>Aim Faster</th>
+                <td id="score-aim">0</td>
+                <th>Dodge Skills</th>
+                <td id="score-dodge">0</td>
+              </tr>
+            </thead>
+          </table>
         </div>
       </div>
     `;
@@ -83,45 +120,49 @@ export class MenuScene {
   }
 
   setupEventListeners() {
-    // Hover logic for Aim Faster
-    const containerAim = this.container.querySelector('#container-aim');
-    const optionsAim = this.container.querySelector('#options-aim');
-    containerAim.addEventListener('mouseenter', () => {
-      optionsAim.style.height = optionsAim.scrollHeight + 'px';
-    });
-    containerAim.addEventListener('mouseleave', () => {
-      optionsAim.style.height = '0';
-    });
+    this.container.querySelectorAll('.game-card').forEach(card => {
+      const game = card.dataset.game;
+      const info = card.querySelector('.game-info');
+      const trigger = card.querySelector('.game-difficulty-trigger');
 
-    // Hover logic for Dodge Skills
-    const containerDodge = this.container.querySelector('#container-dodge');
-    const optionsDodge = this.container.querySelector('#options-dodge');
-    containerDodge.addEventListener('mouseenter', () => {
-      optionsDodge.style.height = optionsDodge.scrollHeight + 'px';
-    });
-    containerDodge.addEventListener('mouseleave', () => {
-      optionsDodge.style.height = '0';
-    });
-
-    // Click on Game Header (Starts with default difficulty)
-    this.container.querySelector('#header-aim').addEventListener('click', () => {
-      this.handlePlayClick(this.difficulties.aim, AimTrainerScene);
-    });
-    this.container.querySelector('#header-dodge').addEventListener('click', () => {
-      this.handlePlayClick(this.difficulties.dodge, DodgeSkillsScene);
-    });
-
-    // Click on Difficulty Buttons
-    this.container.querySelectorAll('.diff-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation(); // Prevent triggering the header click
-        const game = btn.dataset.game;
-        const diff = btn.dataset.diff;
-        this.saveDifficulty(game, diff);
+      // Click on info starts game immediately
+      info.addEventListener('click', (e) => {
+        e.stopPropagation();
         const SceneClass = game === 'aim' ? AimTrainerScene : DodgeSkillsScene;
-        this.handlePlayClick(diff, SceneClass);
+        this.handlePlayClick(this.difficulties[game], SceneClass);
+      });
+
+      // Hover shows dropdown
+      card.addEventListener('mouseenter', () => card.classList.add('active'));
+      card.addEventListener('mouseleave', () => card.classList.remove('active'));
+
+      // Dropdown selection
+      card.querySelectorAll('.diff-opt').forEach(opt => {
+        opt.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const diff = opt.dataset.diff;
+          this.saveDifficulty(game, diff);
+
+          // Update UI label
+          card.querySelector(`#label-${game}`).textContent = this.getDifficultyLabel(diff);
+
+          // Close dropdown and play
+          card.classList.remove('active');
+          const SceneClass = game === 'aim' ? AimTrainerScene : DodgeSkillsScene;
+          this.handlePlayClick(diff, SceneClass);
+        });
       });
     });
+
+    const cursorSelect = this.container.querySelector('#cursor-select');
+    if (cursorSelect) {
+      cursorSelect.addEventListener('change', (e) => {
+        const newCursor = e.target.value;
+        this.selectedCursor = newCursor;
+        localStorage.setItem('selectedCursor', newCursor);
+        this.applyCursor(newCursor);
+      });
+    }
   }
 
   saveDifficulty(game, diff) {
@@ -130,24 +171,17 @@ export class MenuScene {
   }
 
   loadBestScores() {
-    // Basic implementation for showing best scores if they exist
     const aimBest = localStorage.getItem('aimBestScore') || 0;
     const dodgeBest = localStorage.getItem('dodgeBestScore') || 0;
-    const aimBestDiff = localStorage.getItem('aimBestDiff') || '-';
-    const dodgeBestDiff = localStorage.getItem('dodgeBestDiff') || '-';
 
     this.container.querySelector('#score-aim').textContent = aimBest;
     this.container.querySelector('#score-dodge').textContent = dodgeBest;
-    this.container.querySelector('#best-diff-aim').textContent = aimBestDiff;
-    this.container.querySelector('#best-diff-dodge').textContent = dodgeBestDiff;
   }
 
   handlePlayClick(difficulty, SceneClass) {
     this.sceneManager.changeScene(SceneClass, { difficulty });
   }
 
-  destroy() {
-    // cleanup listeners if necessary, though innerHTML = '' handles most cases
-  }
+  destroy() { }
 }
 

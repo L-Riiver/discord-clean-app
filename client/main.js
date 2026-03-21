@@ -11,8 +11,11 @@ async function initApp() {
   const sceneManager = new SceneManager(container);
   
   try {
-    // Optionally show a loading state
-    container.innerHTML = `<p>Conectando con Discord...</p>`;
+    // Check if we have a session to avoid the "Connecting..." flicker
+    const hasSession = !!sessionStorage.getItem('discord_access_token');
+    if (!hasSession) {
+      container.innerHTML = `<div class="loading-full"><p>Conectando con Discord...</p></div>`;
+    }
     
     // Auth & Setup Discord
     await setupDiscordSdk();
@@ -21,8 +24,12 @@ async function initApp() {
     sceneManager.changeScene(MenuScene);
   } catch (err) {
     console.error(err);
-    container.innerHTML = `<p style="color:red;">Error de conexión con Discord: ${err.message}</p>`;
+    container.innerHTML = `<div class="error-msg"><p style="color:red;">Error de conexión con Discord: ${err.message}</p></div>`;
   }
 }
 
 initApp();
+
+if (import.meta.hot) {
+  import.meta.hot.accept();
+}
