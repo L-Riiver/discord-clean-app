@@ -1,6 +1,7 @@
 import { GameLoop } from '../../core/GameLoop.js';
 import { MenuScene } from '../../scenes/MenuScene.js';
 import { TargetSpawner } from './TargetSpawner.js';
+import { audioManager } from '../../services/AudioManager.js';
 
 export class AimTrainerScene {
   constructor(container, sceneManager, props) {
@@ -67,6 +68,11 @@ export class AimTrainerScene {
 
     this.startTime = Date.now();
     this.loop.start();
+
+    // Play Menu Music - You can replace the URL with a local file path like './audio/menu-music.mp3'
+    audioManager.stopMusic();
+    audioManager.stopAllSounds();
+    audioManager.playMusic('./audio/game-music-1.mp3');
   }
 
   update(deltaTime) {
@@ -124,8 +130,13 @@ export class AimTrainerScene {
   }
 
   handleGameOver() {
-
     this.loop.stop();
+
+    // Stop Music and play Lose Sound
+    audioManager.stopMusic();
+    audioManager.stopAllSounds();
+    audioManager.playSound('./audio/lose-music.mp3');
+
     this.failsElement.textContent = this.misses
 
     // Calculate final time
@@ -213,6 +224,8 @@ export class AimTrainerScene {
 
   destroy() {
     this.loop.stop();
+    audioManager.stopMusic();
+    audioManager.stopAllSounds();
     this.canvas.removeEventListener('mousedown', this.handleClick);
     window.removeEventListener('resize', this.handleResize);
     this.canvas.remove();

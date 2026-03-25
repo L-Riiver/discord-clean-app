@@ -2,6 +2,7 @@ import { GameLoop } from '../../core/GameLoop.js';
 import { MenuScene } from '../../scenes/MenuScene.js';
 import { Player } from './Player.js';
 import { ProjectileManager } from './ProjectileManager.js';
+import { audioManager } from '../../services/AudioManager.js';
 
 export class DodgeSkillsScene {
   constructor(container, sceneManager, props) {
@@ -48,6 +49,11 @@ export class DodgeSkillsScene {
     window.addEventListener('resize', this.handleResize);
 
     this.loop.start();
+
+    // Play Game Music - Stop previous track and sounds first
+    audioManager.stopMusic();
+    audioManager.stopAllSounds();
+    audioManager.playMusic('./audio/game-music-2.mp3');
   }
 
   handleContextMenu(event) {
@@ -193,6 +199,11 @@ export class DodgeSkillsScene {
     this.isGameOver = true;
     this.loop.stop();
 
+    // Stop Music and play Lose Sound
+    audioManager.stopMusic();
+    audioManager.stopAllSounds(); // Clear any existing lose sound if it's playing
+    audioManager.playSound('./audio/lose-music.mp3');
+
     const seconds = (this.timeSurvivedMs / 1000).toFixed(2);
     const dodges = this.projectileManager.dodgedCount || 0;
 
@@ -275,6 +286,8 @@ export class DodgeSkillsScene {
 
   destroy() {
     this.loop.stop();
+    audioManager.stopMusic();
+    audioManager.stopAllSounds();
     this.canvas.removeEventListener('contextmenu', this.handleContextMenu);
     this.canvas.removeEventListener('mousedown', this.handleMouseDown);
     this.canvas.removeEventListener('mousemove', this.handleMouseMove);

@@ -902,3 +902,43 @@ body.cursor-custom-3 canvas {
     margin-bottom: 0;
   }
 }
+
+/* VOLUME CONTROL */
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: #111;
+  padding: 15px;
+  border: 2px solid #333;
+}
+
+.volume-icon {
+  font-size: 1.2rem;
+}
+
+.volume-slider {
+  flex: 1;
+  appearance: none;
+  height: 4px;
+  background: #333;
+  outline: none;
+  cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  background: #fff;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.volume-val {
+  min-width: 45px;
+  font-size: 0.9rem;
+  font-weight: 900;
+  color: #fff;
+  text-align: right;
+}

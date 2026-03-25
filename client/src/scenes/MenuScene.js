@@ -1,5 +1,6 @@
 import { AimTrainerScene } from '../games/aim-trainer/AimTrainerScene.js';
 import { DodgeSkillsScene } from '../games/dodge-skills/DodgeSkillsScene.js';
+import { audioManager } from '../services/AudioManager.js';
 
 export class MenuScene {
   constructor(container, sceneManager) {
@@ -28,6 +29,14 @@ export class MenuScene {
   init() {
     this.render();
     this.setupEventListeners();
+
+    // Play Menu Music - You can replace the URL with a local file path like './audio/menu-music.mp3'
+    audioManager.stopMusic();
+    audioManager.stopAllSounds();
+    audioManager.playMusic('./audio/menu-music.mp3');
+
+    // Resume audio on any click in case browser blocked it
+    document.addEventListener('mousedown', () => audioManager.resumeAudio(), { once: true });
   }
 
   render() {
@@ -76,7 +85,11 @@ export class MenuScene {
               <!-- Placeholder for future settings -->
               <div class="setting-item">
                 <label>VOLUMEN</label>
-                <input type="range" min="0" max="100" value="80" disabled style="width: 100%; cursor: not-allowed; opacity: 0.5;">
+                <div class="volume-control">
+                  <span class="volume-icon">🔊</span>
+                  <input type="range" id="volume-slider" min="0" max="100" value="${Math.round(audioManager.volume * 100)}" class="volume-slider">
+                  <span id="volume-val" class="volume-val">${Math.round(audioManager.volume * 100)}%</span>
+                </div>
               </div>
             </div>
           </div>
@@ -231,6 +244,17 @@ export class MenuScene {
         opt.classList.add('selected');
       });
     });
+
+    // Volume Slider listener
+    const volumeSlider = this.container.querySelector('#volume-slider');
+    const volumeVal = this.container.querySelector('#volume-val');
+    if (volumeSlider) {
+      volumeSlider.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        audioManager.setVolume(val / 100);
+        if (volumeVal) volumeVal.textContent = `${val}%`;
+      });
+    }
   }
 
   toggleSettings(show) {
