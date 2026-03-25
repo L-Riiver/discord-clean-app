@@ -4,6 +4,7 @@ export class TargetSpawner {
     this.height = height;
     this.targets = [];
     this.spawnTimer = 0;
+    this.topMargin = 120; // Safe zone for HUD
     
     // Easy, Medium, Hard Configuration
     const diffConfig = {
@@ -27,7 +28,7 @@ export class TargetSpawner {
       this.spawnTimer = 0;
       this.targets.push({
         x: Math.random() * (this.width - 100) + 50,
-        y: Math.random() * (this.height - 100) + 50,
+        y: Math.random() * (this.height - this.topMargin - 100) + this.topMargin + 50,
         radius: 40,
         missed: false
       });
@@ -47,9 +48,11 @@ export class TargetSpawner {
   attemptHit(mouseX, mouseY) {
     let hit = false;
     this.targets = this.targets.filter(target => {
-      // Manhattan distance for exact diamond click detection
-      const manhattanDistance = Math.abs(target.x - mouseX) + Math.abs(target.y - mouseY);
-      if (manhattanDistance <= target.radius) {
+      // Euclidean distance for circular target detection
+      const dx = target.x - mouseX;
+      const dy = target.y - mouseY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance <= target.radius) {
          hit = true;
          return false; // Remove if hit
       }
@@ -69,23 +72,23 @@ export class TargetSpawner {
       if (t.radius <= 0) return;
       
       ctx.save();
-      ctx.translate(t.x, t.y);
-      ctx.rotate(Math.PI / 4); // Rotate 45 degrees
       
-      const r = t.radius / Math.SQRT2; // Half-side of the square inscribed in target.radius
-
       // Outer glow and border
       ctx.strokeStyle = '#fff';
       ctx.lineWidth = 3;
       ctx.shadowColor = '#fff';
       ctx.shadowBlur = 15;
       
-      ctx.strokeRect(-r, -r, r * 2, r * 2);
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2);
+      ctx.stroke();
       
       // Inner border for extra detail
       ctx.lineWidth = 1;
       ctx.shadowBlur = 0;
-      ctx.strokeRect(-r * 0.6, -r * 0.6, r * 1.2, r * 1.2);
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, t.radius * 0.6, 0, Math.PI * 2);
+      ctx.stroke();
       
       ctx.restore();
     });

@@ -14,7 +14,10 @@ export class MenuScene {
     this.selectedCursor = localStorage.getItem('selectedCursor') || 'cursor-default';
     this.applyCursor(this.selectedCursor);
 
+    this.showSettings = false;
+
     this.handlePlayClick = this.handlePlayClick.bind(this);
+    this.toggleSettings = this.toggleSettings.bind(this);
   }
 
   applyCursor(cursorClass) {
@@ -30,18 +33,52 @@ export class MenuScene {
   render() {
     this.container.innerHTML = `
       <div class="menu-container">
+        <button id="btn-open-settings" class="settings-trigger-btn">
+          <span class="icon">⚙️</span> AJUSTES
+        </button>
         <!-- Logo Section -->
         <div class="logo-section">
           <img src="../microlol-transparent.png" alt="Logo">
           
-          <div class="cursor-select-container" style="margin-top: 20px; text-align: center;">
-            <label style="font-weight: bold; margin-right: 10px;">CURSOR:</label>
-            <select id="cursor-select" style="background: black; color: white; border: 2px solid white; padding: 5px 10px; font-weight: bold; font-family: inherit; cursor: pointer;">
-              <option value="cursor-default" ${this.selectedCursor === 'cursor-default' ? 'selected' : ''}>Default</option>
-              <option value="cursor-custom-1" ${this.selectedCursor === 'cursor-custom-1' ? 'selected' : ''}>Cruz</option>
-              <option value="cursor-custom-2" ${this.selectedCursor === 'cursor-custom-2' ? 'selected' : ''}>Mano</option>
-              <option value="cursor-custom-3" ${this.selectedCursor === 'cursor-custom-3' ? 'selected' : ''}>Cursor Lol</option>
-            </select>
+        </div>
+        
+        <!-- Settings Overlay -->
+        <div id="settings-overlay" class="settings-overlay ${this.showSettings ? 'active' : ''}">
+          <div class="settings-modal">
+            <div class="settings-header">
+              <h2>AJUSTES</h2>
+              <button id="btn-close-settings" class="close-btn">&times;</button>
+            </div>
+            
+            <div class="settings-content">
+              <div class="setting-item">
+                <label>APARIENCIA DEL CURSOR</label>
+                <div class="cursor-grid">
+                  <div class="cursor-opt ${this.selectedCursor === 'cursor-default' ? 'selected' : ''}" data-cursor="cursor-default">
+                    <div class="cursor-preview default"></div>
+                    <span>Default</span>
+                  </div>
+                  <div class="cursor-opt ${this.selectedCursor === 'cursor-custom-1' ? 'selected' : ''}" data-cursor="cursor-custom-1">
+                    <div class="cursor-preview crosshair"></div>
+                    <span>Cruz</span>
+                  </div>
+                  <div class="cursor-opt ${this.selectedCursor === 'cursor-custom-2' ? 'selected' : ''}" data-cursor="cursor-custom-2">
+                    <div class="cursor-preview pointer"></div>
+                    <span>Mano</span>
+                  </div>
+                  <div class="cursor-opt ${this.selectedCursor === 'cursor-custom-3' ? 'selected' : ''}" data-cursor="cursor-custom-3">
+                    <div class="cursor-preview lol"></div>
+                    <span>MicroLoL</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Placeholder for future settings -->
+              <div class="setting-item">
+                <label>VOLUMEN</label>
+                <input type="range" min="0" max="100" value="80" disabled style="width: 100%; cursor: not-allowed; opacity: 0.5;">
+              </div>
+            </div>
           </div>
         </div>
         
@@ -90,18 +127,35 @@ export class MenuScene {
           </div>
         </div>
 
-        <!-- Results Section -->
         <div class="results-section">
-          <h3 class="results-header">Resultados</h3>
+          <h3 class="results-header">Récords</h3>
           <table class="results-table">
             <thead>
               <tr>
-                <th>Aim Faster</th>
-                <td id="score-aim">0</td>
-                <th>Dodge Skills</th>
-                <td id="score-dodge">0</td>
+                <th colspan="2">Aim Faster</th>
+                <th colspan="2">Dodge Skills</th>
               </tr>
             </thead>
+            <tbody>
+              <tr>
+                <td class="diff-cat">Fácil</td>
+                <td id="score-aim-easy" class="score-val">0</td>
+                <td class="diff-cat">Fácil</td>
+                <td id="score-dodge-easy" class="score-val">0</td>
+              </tr>
+              <tr>
+                <td class="diff-cat">Medio</td>
+                <td id="score-aim-medium" class="score-val">0</td>
+                <td class="diff-cat">Medio</td>
+                <td id="score-dodge-medium" class="score-val">0</td>
+              </tr>
+              <tr>
+                <td class="diff-cat">Difícil</td>
+                <td id="score-aim-hard" class="score-val">0</td>
+                <td class="diff-cat">Difícil</td>
+                <td id="score-dodge-hard" class="score-val">0</td>
+              </tr>
+            </tbody>
           </table>
         </div>
       </div>
@@ -154,14 +208,40 @@ export class MenuScene {
       });
     });
 
-    const cursorSelect = this.container.querySelector('#cursor-select');
-    if (cursorSelect) {
-      cursorSelect.addEventListener('change', (e) => {
-        const newCursor = e.target.value;
+    const btnOpenSettings = this.container.querySelector('#btn-open-settings');
+    if (btnOpenSettings) {
+      btnOpenSettings.addEventListener('click', () => this.toggleSettings(true));
+    }
+
+    const btnCloseSettings = this.container.querySelector('#btn-close-settings');
+    if (btnCloseSettings) {
+      btnCloseSettings.addEventListener('click', () => this.toggleSettings(false));
+    }
+
+    // Cursor selection in settings
+    this.container.querySelectorAll('.cursor-opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        const newCursor = opt.dataset.cursor;
         this.selectedCursor = newCursor;
         localStorage.setItem('selectedCursor', newCursor);
         this.applyCursor(newCursor);
+
+        // Update UI
+        this.container.querySelectorAll('.cursor-opt').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
       });
+    });
+  }
+
+  toggleSettings(show) {
+    this.showSettings = show;
+    const overlay = this.container.querySelector('#settings-overlay');
+    if (overlay) {
+      if (show) {
+        overlay.classList.add('active');
+      } else {
+        overlay.classList.remove('active');
+      }
     }
   }
 
@@ -171,11 +251,16 @@ export class MenuScene {
   }
 
   loadBestScores() {
-    const aimBest = localStorage.getItem('aimBestScore') || 0;
-    const dodgeBest = localStorage.getItem('dodgeBestScore') || 0;
+    ['easy', 'medium', 'hard'].forEach(diff => {
+      const aimScore = localStorage.getItem(`aimBestScore_${diff}`) || 0;
+      const dodgeScore = localStorage.getItem(`dodgeBestScore_${diff}`) || 0;
 
-    this.container.querySelector('#score-aim').textContent = aimBest;
-    this.container.querySelector('#score-dodge').textContent = dodgeBest;
+      const aimEl = this.container.querySelector(`#score-aim-${diff}`);
+      const dodgeEl = this.container.querySelector(`#score-dodge-${diff}`);
+
+      if (aimEl) aimEl.textContent = aimScore;
+      if (dodgeEl) dodgeEl.textContent = dodgeScore;
+    });
   }
 
   handlePlayClick(difficulty, SceneClass) {

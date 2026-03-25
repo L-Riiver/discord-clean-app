@@ -6,21 +6,21 @@ export class AimTrainerScene {
   constructor(container, sceneManager, props) {
     this.container = container;
     this.sceneManager = sceneManager;
-    
+
     this.score = 0;
     this.misses = 0;
     this.maxMisses = 3;
     this.difficulty = props.difficulty || 'easy';
     this.startTime = Date.now();
-    
+
     this.canvas = document.createElement('canvas');
     this.ctx = this.canvas.getContext('2d');
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
-    
+
     this.spawner = new TargetSpawner(this.canvas.width, this.canvas.height, this.difficulty);
     this.loop = new GameLoop(this.update.bind(this), this.draw.bind(this));
-    
+
     this.handleClick = this.handleClick.bind(this);
     this.handleResize = this.handleResize.bind(this);
   }
@@ -29,15 +29,15 @@ export class AimTrainerScene {
     // Style the canvas dynamically to cover the screen
     this.canvas.style.display = 'block';
     this.canvas.style.backgroundColor = '#1b1b1b'; // Match deeper dark theme
-    
+
     this.container.appendChild(this.canvas);
-    
+
     // Create UI HUD
     this.uiContainer = document.createElement('div');
     this.uiContainer.className = 'aim-hud';
-    
+
     const diffLabel = this.difficulty.charAt(0).toUpperCase() + this.difficulty.slice(1);
-    
+
     this.uiContainer.innerHTML = `
       <div class="hud-left">
         <div class="hud-box">
@@ -56,7 +56,7 @@ export class AimTrainerScene {
       </div>
     `;
     this.container.appendChild(this.uiContainer);
-    
+
     this.scoreElement = this.uiContainer.querySelector('#aim-score');
     this.failsElement = this.uiContainer.querySelector('#aim-fails');
     this.timeElement = this.uiContainer.querySelector('#aim-time');
@@ -71,17 +71,17 @@ export class AimTrainerScene {
 
   update(deltaTime) {
     this.spawner.update(deltaTime);
-    
+
     // Update Time
     const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
     const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
     const secs = String(elapsed % 60).padStart(2, '0');
-    
+
     if (this.timeElement) this.timeElement.textContent = `${mins}:${secs}`;
     if (this.speedElement) this.speedElement.textContent = this.spawner.getAppearingSpeed();
     if (this.scoreElement) this.scoreElement.textContent = this.score;
     if (this.failsElement) this.failsElement.textContent = this.misses;
-    
+
     const missedTargetsCount = this.spawner.getAndClearMisses();
     if (missedTargetsCount > 0) {
       this.misses += missedTargetsCount;
@@ -110,12 +110,12 @@ export class AimTrainerScene {
     const rect = this.canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
-    
+
     if (this.spawner.attemptHit(x, y)) {
       this.score++;
     }
   }
-  
+
   handleResize() {
     this.canvas.width = window.innerWidth;
     this.canvas.height = window.innerHeight;
@@ -124,53 +124,88 @@ export class AimTrainerScene {
   }
 
   handleGameOver() {
+
     this.loop.stop();
-    
+    this.failsElement.textContent = this.misses
+
     // Calculate final time
     const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
     const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
     const secs = String(elapsed % 60).padStart(2, '0');
     const timeString = `${mins}:${secs}`;
-    
+
     // Record check
-    const currentBest = parseInt(localStorage.getItem('aimBestScore') || '0', 10);
+    const storageKey = `aimBestScore_${this.difficulty}`;
+    const currentBest = parseInt(localStorage.getItem(storageKey) || '0', 10);
     const isNewRecord = this.score > currentBest;
     if (isNewRecord) {
+      localStorage.setItem(storageKey, this.score);
+    }
+
+    // Also update general best for compatibility
+    const generalBest = parseInt(localStorage.getItem('aimBestScore') || '0', 10);
+    if (this.score > generalBest) {
       localStorage.setItem('aimBestScore', this.score);
     }
-    
+
     const diffLabel = this.difficulty.charAt(0).toUpperCase() + this.difficulty.slice(1);
-    
+
     // Build Modal
     this.modal = document.createElement('div');
-    this.modal.className = 'aim-modal-overlay';
+    this.modal.className = 'results-overlay';
     this.modal.innerHTML = `
-      <div class="aim-modal-header">
-        <h2 class="modal-title">TRAINING COMPLETE</h2>
-      </div>
-      <div class="aim-modal">
-        <div class="modal-content">
-          ${isNewRecord ? '<div class="new-record-badge">NEW RECORD!</div>' : ''}
-          <div class="stat-line">Final Score: ${this.score}</div>
-          <div class="stat-line">Hits: ${this.score}</div>
-          <div class="stat-line">Fails: ${this.misses}</div>
-          <div class="stat-line">Total Time: ${timeString}</div>
-          <div class="diff-badge">Difficulty: ${diffLabel}</div>
-          
-          <div class="modal-buttons">
-            <button id="btn-retry" class="btn-dark">RETRY</button>
-            <button id="btn-menu" class="btn-light">BACK TO MENU</button>
+      <div class="results-container">
+        <div class="results-logo">
+          <img src="../microlol-transparent.png" alt="Logo">
+        </div>
+
+        <h1 class="results-title">AIM TRAINER - RESULTADOS</h1>
+
+        <div class="results-grid">
+          <div class="result-row">
+            <div class="result-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+              </svg>
+            </div>
+            <div class="result-label">Tiempo Total</div>
+            <div class="result-value">${timeString}</div>
           </div>
+
+          <div class="result-row">
+            <div class="result-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+            </div>
+            <div class="result-label">Aciertos/Hits</div>
+            <div class="result-value">${this.score}</div>
+          </div>
+
+          <div class="result-row">
+            <div class="result-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.45.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7c0 3.31 2.69 6 6 6s6-2.69 6-6V2z"/>
+              </svg>
+            </div>
+            <div class="result-label">Puntaje Final</div>
+            <div class="result-value">${this.score * 100}</div>
+          </div>
+        </div>
+
+        <div class="results-actions">
+          <button id="btn-retry" class="action-btn primary">REINTENTAR</button>
+          <button id="btn-menu" class="action-btn secondary">MENÚ PRINCIPAL</button>
         </div>
       </div>
     `;
-    
+
     this.container.appendChild(this.modal);
-    
+
     this.modal.querySelector('#btn-retry').addEventListener('click', () => {
       this.sceneManager.changeScene(this.constructor, { difficulty: this.difficulty });
     });
-    
+
     this.modal.querySelector('#btn-menu').addEventListener('click', () => {
       this.sceneManager.changeScene(MenuScene);
     });
