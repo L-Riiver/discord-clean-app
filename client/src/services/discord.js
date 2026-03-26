@@ -28,8 +28,9 @@ export async function setupDiscordSdk() {
         ],
       });
 
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || "";
       // Retrieve an access_token from your activity's server
-      const response = await fetch("/api/token", {
+      const response = await fetch(`${backendUrl}/api/token`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -1,13 +1,16 @@
 import express from "express";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
+import cors from "cors";
 dotenv.config({ path: "../.env" });
 
 const app = express();
-const port = 3001;
+const port = process.env.PORT || 3001;
 
 // Allow express to parse JSON bodies
 app.use(express.json());
+// Allow CORS for requests from Vercel
+app.use(cors());
 
 app.post("/api/token", async (req, res) => {
   
